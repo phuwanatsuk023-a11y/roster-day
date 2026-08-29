@@ -1,4 +1,5 @@
 import React from 'react';
+import warinLogo from './warin_logo.jpg';
 import {
   Calendar,
   Database,
@@ -43,10 +44,12 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setCurrentTab('public-check')}>
             <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-md p-0.5 overflow-hidden border-2 border-emerald-400">
               <img
-                src="/warin_logo.jpg"
+                src={warinLogo}
                 alt="ตราสัญลักษณ์เทศบาลเมืองวารินชำราบ"
                 className="w-full h-full object-contain"
-                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/warin_logo.jpg';
+                }}
               />
             </div>
             <div>
