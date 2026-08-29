@@ -55,15 +55,14 @@ export const Header: React.FC<HeaderProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-black text-base sm:text-lg tracking-tight text-white">
-                  ระบบจัดเวรยาม
+                  ระบบจัดเวรยามสำนักงาน
                 </span>
+                </div>
                 <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] uppercase font-bold rounded-full bg-emerald-800 text-emerald-200 border border-emerald-700">
-                  เทศบาลเมืองวารินชำราบ
+                  เทศบาลเมืองวารินชำราบ จังหวัดอุบลราชธานี
                 </span>
-              </div>
-              <p className="text-xs text-emerald-200 font-normal hidden md:block">
-                ตรวจสอบการปฏิบัติหน้าที่เวรยาม
-              </p>
+              
+             
             </div>
           </div>
 

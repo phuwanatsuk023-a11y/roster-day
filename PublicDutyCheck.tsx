@@ -245,14 +245,21 @@ export const PublicDutyCheck: React.FC<PublicDutyCheckProps> = ({
     dayMap.forEach((group, day) => {
       if (group.isInspector) {
         // Build aggregated inspector card for this day
-        // Find all rows of this day to list all duty points and personnel under inspection
+        // Find all rows of this day
         const allDayRows = scheduleRows.filter(r => r.day === day);
-        const firstRow = group.inspectorRows[0] || allDayRows[0];
+
+        // Filter rows by inspector gender:
+        // ผู้ตรวจเวรชาย -> ตรวจกลางคืน และแสดงเฉพาะผู้อยู่เวรชาย (gender: 'M')
+        // ผู้ตรวจเวรหญิง -> ตรวจกลางวัน และแสดงเฉพาะผู้อยู่เวรหญิง (gender: 'F')
+        const inspectorGender = selectedPerson?.gender || (group.inspectorRows[0]?.gender) || 'M';
+        const filteredDayRows = allDayRows.filter(r => r.gender === inspectorGender);
+
+        const firstRow = filteredDayRows[0] || group.inspectorRows[0] || allDayRows[0];
         const d = new Date(firstRow?.date_str || `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
         const dow = isNaN(d.getDay()) ? 0 : d.getDay();
 
         const pointsMap = new Map<string, { pointName: string; gender: 'M' | 'F'; headName?: string; subName?: string; sub2Name?: string }>();
-        allDayRows.forEach(r => {
+        filteredDayRows.forEach(r => {
           if (!pointsMap.has(r.point_name)) {
             pointsMap.set(r.point_name, {
               pointName: r.point_name,
@@ -264,27 +271,24 @@ export const PublicDutyCheck: React.FC<PublicDutyCheckProps> = ({
           }
         });
 
-        // Determine inspection shift time
-        const hasMale = allDayRows.some(r => r.gender === 'M');
-        const hasFemale = allDayRows.some(r => r.gender === 'F');
-        let timeSlot = '18.00 - 06.00 น. (กลางคืน)';
-        if (hasMale && hasFemale) {
-          timeSlot = 'ตรวจเวรทั้งผลัดกลางวันและกลางคืน';
-        } else if (hasFemale && !hasMale) {
-          timeSlot = '08.30 - 16.30 น. (กลางวัน วันหยุด)';
-        }
+        // กำหนดเวลาตรวจเวรตามเงื่อนไข:
+        // ผู้ตรวจเวรหญิง: ตรวจกลางวัน (08.30 - 16.30 น. วันหยุด)
+        // ผู้ตรวจเวรชาย: ตรวจกลางคืน (18.00 - 06.00 น.)
+        const timeSlot = inspectorGender === 'F'
+          ? '08.30 - 16.30 น. (กลางวัน วันหยุด)'
+          : '18.00 - 06.00 น. (กลางคืน)';
 
         finalAssignments.push({
           day,
           dateStr: firstRow?.date_str || `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
           dow,
           isInspector: true,
-          dutyPoint: `ตรวจเวรทุกจุดประจำการ (${pointsMap.size} จุด)`,
-          roleName: 'ผู้ตรวจเวรประจำวัน',
+          dutyPoint: `ตรวจเวรจุดประจำการ (${pointsMap.size} จุด)`,
+          roleName: inspectorGender === 'F' ? 'ผู้ตรวจเวร (กลางวัน)' : 'ผู้ตรวจเวร (กลางคืน)',
           timeSlot,
           partnerNames: [],
           inspectorName: selectedPerson ? `${selectedPerson.fname} ${selectedPerson.lname}` : 'ผู้ตรวจเวร',
-          gender: firstRow?.gender || 'M',
+          gender: inspectorGender,
           inspectorPoints: Array.from(pointsMap.values()),
         });
       }
@@ -338,7 +342,7 @@ export const PublicDutyCheck: React.FC<PublicDutyCheckProps> = ({
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
-            ตรวจสอบเวรยาม
+            ตรวจสอบรายชื่อเวรยามประจำเดือน
           </h1>
           <p className="text-sm sm:text-base text-emerald-100/90 mb-6 font-light">
             ค้นหาด้วยชื่อ-สกุล หรือ รหัสพนักงาน เพื่อดูวันเข้าเวร จุดประจำการ คู่เวรปฏิบัติงาน และผู้ตรวจเวรประจำเดือน
